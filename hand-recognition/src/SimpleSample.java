@@ -23,9 +23,9 @@ class SimpleSample {
     static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 
     public static void main(String[] args) {
-        BackgroundSubtractorMOG2 bg;
-        bg = Video.createBackgroundSubtractorMOG2();
-        //bg.setNMixtures(3);
+        BackgroundSubtractorKNN bg;
+        bg = Video.createBackgroundSubtractorKNN();
+       // bg.setNMixtures(8);
         
         bg.setDetectShadows(false);
         
@@ -34,19 +34,21 @@ class SimpleSample {
         System.out.println("cascade loaded: "+(!cascade.empty())+" !");
 
         NamedWindow    frame = new NamedWindow("Face");
-        NamedWindow fgfr = new NamedWindow("fg");
-        NamedWindow fgfr2 = new NamedWindow("fg");
+       // NamedWindow fgfr = new NamedWindow("fg");
+        //NamedWindow fgfr2 = new NamedWindow("fg");
         VideoCapture cap = new VideoCapture(0);
-        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,200);
-        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,400);
+       // cap.set(Videoio.CAP_PROP_FPS,5);
+       
         if (! cap.isOpened()) {
             System.out.println("Sorry, we could not open you capture !");
         }
-
+        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,300);
+        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,300);
         Mat im = new Mat();
         Mat fg = new Mat();
         Mat skinfr = new Mat();
         Mat skinForground = new Mat();
+        MoveBuffer mvBuffer = new MoveBuffer(10);
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();        
         int learnBg = 500;
         SkinMaskThreshold skin = null;
@@ -55,7 +57,7 @@ class SimpleSample {
         int cX = 0;
         int cY = 0;
         while (cap.read(im)) {
-        	
+        	//System.out.println(cap.get(Videoio.CAP_PROP_FPS));
               if (cascade != null ) {
             	  if(learnBg > 0) {
               		bg.apply(im, fg);
@@ -102,10 +104,13 @@ class SimpleSample {
                 	  }
                    }
                    
-                   if(hand.height> 50 && hand.width>20){
+                   if(hand.height> 70 && hand.width>50){
+                	   mvBuffer.addPoint(cX, cY);
                 	   Imgproc.rectangle(im, hand.tl(), hand.br(),new Scalar(200,0,0));
-                	   Imgproc.circle(im, new Point(cX,cY), 7, new Scalar(0,200,0));
+                	   for(int k=0;k<mvBuffer.size();k++){
+                		   Imgproc.circle(im, new Point(mvBuffer.get(k)[0],mvBuffer.get(k)[1]), 7, new Scalar(0,200,0),-1);
                 	   }
+                	  }
                    contours.clear();
                    
                      int k = frame.waitKey(30);
@@ -113,9 +118,10 @@ class SimpleSample {
                     	 cap.release();
                     	 break;
                      }
-                     fgfr2.imshow(fg);
-                     fgfr.imshow(skinForground);
+                     
+                    // fgfr.imshow(skinForground);
                 }
+               // fgfr2.imshow(fg);
                 frame.imshow(im);
                
                 im.release();
