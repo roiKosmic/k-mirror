@@ -42,13 +42,14 @@ class SimpleSample {
         if (! cap.isOpened()) {
             System.out.println("Sorry, we could not open you capture !");
         }
-        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,300);
-        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,300);
+        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,200);
+        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,200);
         Mat im = new Mat();
         Mat fg = new Mat();
         Mat skinfr = new Mat();
         Mat skinForground = new Mat();
         MoveBuffer mvBuffer = new MoveBuffer(10);
+        HandTracker myHand = new HandTracker(mvBuffer);
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();        
         int learnBg = 500;
         SkinMaskThreshold skin = null;
@@ -64,7 +65,7 @@ class SimpleSample {
               		learnBg--;
               		
               	}else{
-              		System.out.println("bglearnt");
+              		//System.out.println("bglearnt");
               		bg.apply(im, fg,0);
               	}
             	    
@@ -90,27 +91,56 @@ class SimpleSample {
                   //Selection des contours
                   for(int j=0;j<contours.size();j++){
                 	  if(j==0){ selectedHand = contours.get(j);}
-                	  
+                	  //On prend que les grands contours
                 	  if(Imgproc.contourArea(contours.get(j))>50){
+                		  //On selectionne le plus grand contour
                 		  if(Imgproc.contourArea(contours.get(j))>= Imgproc.contourArea(selectedHand)) selectedHand = contours.get(j);
                 		
-                		 Moments m =  Imgproc.moments(selectedHand);
-                		 cX = (int) (m.m10/m.m00);
-                		 cY =(int)(m.m01/m.m00);
                 		 
-                	 //  Imgproc.drawContours(im, contours,j, new Scalar(0,200,0));
-                	   hand = Imgproc.boundingRect(selectedHand);
+                		  //Voici la main possible
+                		  hand = Imgproc.boundingRect(selectedHand);
                 	
                 	  }
                    }
                    
-                   if(hand.height> 70 && hand.width>50){
-                	   mvBuffer.addPoint(cX, cY);
-                	   Imgproc.rectangle(im, hand.tl(), hand.br(),new Scalar(200,0,0));
-                	   for(int k=0;k<mvBuffer.size();k++){
-                		   Imgproc.circle(im, new Point(mvBuffer.get(k)[0],mvBuffer.get(k)[1]), 7, new Scalar(0,200,0),-1);
+                   if(hand.height> 60 && hand.width>20){
+                	   boolean falsePositive = false;
+                	   if(!myHand.isFirstDetection()&&!myHand.isHandPresent()){
+                		   //Controle du positionnement de la main pour supprimer les faux positifs (cou par ex)
+                		   //La main ne doit pas se trouver dans un rectange autour du visage
+                		   if((hand.x > found.x && hand.x < (found.x + found.width))||hand.y < found.y){
+                			   falsePositive = true;
+                			   System.out.println("False positive Detected");
+                			   Imgproc.circle(im, new Point(hand.x,hand.y), 50, new Scalar(0,0,200),-1);
+                			   
+                		   }else{
+                			   falsePositive = false;
+                			   myHand.setFirstDetection(true);
+                		   }
                 	   }
-                	  }
+                	   if(!falsePositive){
+                		   Moments m =  Imgproc.moments(selectedHand);
+                 		  cX = (int) (m.m10/m.m00);
+                 		  cY =(int)(m.m01/m.m00);
+                		   myHand.setHandPresent(true);
+                		   myHand.setFirstDetection(false);
+                		   synchronized(mvBuffer){
+                			   mvBuffer.addPoint(cX, cY);
+                		   }
+                		   Imgproc.rectangle(im, hand.tl(), hand.br(),new Scalar(200,0,0));
+                		   for(int k=0;k<mvBuffer.size();k++){
+                			   Imgproc.circle(im, new Point(mvBuffer.get(k)[0],mvBuffer.get(k)[1]), 7, new Scalar(0,200,0),-1);
+                	   		}
+                		   if(mvBuffer.getOrigin()[0]  != 0 && mvBuffer.getOrigin()[1] !=0){
+                			   Imgproc.circle(im, new Point(mvBuffer.getOrigin()[0],mvBuffer.getOrigin()[1]), 20, new Scalar(0,0,200),1);
+                		   }
+                		   
+                	   }
+                	   
+                   }else{
+                	   myHand.setHandPresent(false);
+                	   
+                   }
                    contours.clear();
                    
                      int k = frame.waitKey(30);
