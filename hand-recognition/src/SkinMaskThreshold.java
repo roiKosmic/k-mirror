@@ -1,7 +1,7 @@
 import org.opencv.core.*;
 import org.opencv.imgproc.*;
 import java.util.*;
-import java.math.*;
+
 
 public class SkinMaskThreshold {
 	private double hmax;

@@ -124,9 +124,9 @@ class SimpleSample {
                  		  cY =(int)(m.m01/m.m00);
                 		   myHand.setHandPresent(true);
                 		   myHand.setFirstDetection(false);
-                		   synchronized(mvBuffer){
+                		   
                 			   mvBuffer.addPoint(cX, cY);
-                		   }
+                		   
                 		   Imgproc.rectangle(im, hand.tl(), hand.br(),new Scalar(200,0,0));
                 		   for(int k=0;k<mvBuffer.size();k++){
                 			   Imgproc.circle(im, new Point(mvBuffer.get(k)[0],mvBuffer.get(k)[1]), 7, new Scalar(0,200,0),-1);

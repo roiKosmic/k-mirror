@@ -11,6 +11,7 @@ public class HandTracker {
 	private TrackingTask trackerTask;
 	private EndTrackingTask endTrackerTask;
 	private boolean taskSchedule;
+	private MoveFactory moveAnalyser;
 	
 	public HandTracker(MoveBuffer buffer){
 		this.firstDetection = false;
@@ -20,7 +21,7 @@ public class HandTracker {
 		this.trackerTimer = new Timer();
 		this.setHandPresent(false);
 		this.setmBuffer(buffer);
-		;
+		this.moveAnalyser = new MoveFactory(buffer.getMaxSize());
 	}
 	
 	public boolean isFirstDetection(){
@@ -32,7 +33,7 @@ public class HandTracker {
 		if(value && !taskSchedule && !trackingInProgress) {
 			this.trackerTask = new TrackingTask(this);
 			System.out.println("Hand first Detected -> Starting tracker Timer");
-			this.trackerTimer.schedule(trackerTask , 2000,500);
+			this.trackerTimer.schedule(trackerTask , 2000,200);
 			this.taskSchedule = true;
 			this.firstDetection = true;
 		}else if(value && taskSchedule && trackingInProgress){
@@ -62,7 +63,7 @@ public class HandTracker {
 		this.handPresent = handPresent;
 		if(!handPresent && this.taskSchedule && this.trackingInProgress){
 			if(!stopTrackingRequest){
-				this.endTrackerTask = new EndTrackingTask(this,this.trackerTask);
+				this.endTrackerTask = new EndTrackingTask();
 				this.trackerTimer.schedule(this.endTrackerTask,1500);
 				this.stopTrackingRequest = true;
 			}
@@ -76,48 +77,45 @@ public class HandTracker {
 	}
 	
 	class EndTrackingTask extends TimerTask{
-			TrackingTask myTrack;
-			HandTracker ref;
-		public EndTrackingTask(HandTracker ht, TrackingTask tk){
-			super();
-			ref = ht;
-			myTrack = tk;
 			
+		public EndTrackingTask(){
+			super();
+		
 		}
 		public void run(){
 			System.out.println("Tracking Stopped ! No hand detected ");
-			myTrack.cancel();
-			ref.taskSchedule=false;
-			ref.trackingInProgress = false;
-			ref.stopTrackingRequest = false;
-			ref.mBuffer.flush();
+			trackerTask.cancel();
+			taskSchedule=false;
+			trackingInProgress = false;
+			stopTrackingRequest = false;
+			mBuffer.flush();
 			this.cancel();
 			
 		}
 		
 	}
 	class TrackingTask extends TimerTask{
-		 HandTracker ref;
+		 
 		 private boolean originSet;
 		public TrackingTask(HandTracker ht){
 			super();
-			ref = ht;
 			originSet = false;
 			
 		}
 		public void run(){
 			if(!originSet){
-				System.out.printf("Setting Origin of Hand Region - waiting for buffer %d/%d ",ref.mBuffer.size(),ref.mBuffer.getMaxSize());
-				if(ref.mBuffer.size()>=ref.mBuffer.getMaxSize()){
-					ref.mBuffer.setOrigin();
+				//System.out.printf("Setting Origin of Hand Region - waiting for buffer %d/%d ",ref.mBuffer.size(),ref.mBuffer.getMaxSize());
+				if(mBuffer.size()>=mBuffer.getMaxSize()){
+					mBuffer.setOrigin();
 					originSet = true;
-					System.out.println("Origin Set\n");
+					//System.out.println("Origin Set\n");
 				}
 				
 			}else{
-				ref.trackingInProgress = true;
-				ref.mBuffer.updateOrigin();
-				System.out.println("Tracking in Progress");
+				trackingInProgress = true;
+				mBuffer.updateOrigin();
+				//System.out.println("Tracking in Progress - Passing buffer to Analyser");
+				moveAnalyser.checkMove(mBuffer);
 			}
 		}
 		
