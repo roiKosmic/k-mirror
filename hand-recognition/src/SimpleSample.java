@@ -8,6 +8,7 @@ import org.opencv.objdetect.*;
 //import org.opencv.;
 import org.opencv.utils.*;
 import java.util.*;
+
 import lowgui.*;
 import java.io.File;
 import java.io.IOException;
@@ -42,16 +43,16 @@ class SimpleSample {
         if (! cap.isOpened()) {
             System.out.println("Sorry, we could not open you capture !");
         }
-        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,200);
-        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,200);
+        cap.set(Videoio.CAP_PROP_FRAME_WIDTH,Integer.parseInt(Config.getConfig("CAPTURE_WIDTH")));
+        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT,Integer.parseInt(Config.getConfig("CAPTURE_HEIGHT")));
         Mat im = new Mat();
         Mat fg = new Mat();
         Mat skinfr = new Mat();
         Mat skinForground = new Mat();
-        MoveBuffer mvBuffer = new MoveBuffer(10);
+        MoveBuffer mvBuffer = new MoveBuffer(Integer.parseInt(Config.getConfig("MOVE_BUFFER")));
         HandTracker myHand = new HandTracker(mvBuffer);
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();        
-        int learnBg = 500;
+        int learnBg = Integer.parseInt(Config.getConfig("BACKGROUND_LEARN"));
         SkinMaskThreshold skin = null;
         MatOfPoint selectedHand = null;
         Rect hand = null;
@@ -92,7 +93,7 @@ class SimpleSample {
                   for(int j=0;j<contours.size();j++){
                 	  if(j==0){ selectedHand = contours.get(j);}
                 	  //On prend que les grands contours
-                	  if(Imgproc.contourArea(contours.get(j))>50){
+                	  if(Imgproc.contourArea(contours.get(j))>Integer.parseInt(Config.getConfig("HAND_CONTOUR_AREA"))){
                 		  //On selectionne le plus grand contour
                 		  if(Imgproc.contourArea(contours.get(j))>= Imgproc.contourArea(selectedHand)) selectedHand = contours.get(j);
                 		
@@ -103,14 +104,17 @@ class SimpleSample {
                 	  }
                    }
                    
-                   if(hand.height> 60 && hand.width>20){
+                   if(hand.height> Integer.parseInt(Config.getConfig("HAND_MIN_HEIGHT")) && hand.width>Integer.parseInt(Config.getConfig("HAND_MIN_WIDTH"))){
                 	   boolean falsePositive = false;
                 	   if(!myHand.isFirstDetection()&&!myHand.isHandPresent()){
                 		   //Controle du positionnement de la main pour supprimer les faux positifs (cou par ex)
                 		   //La main ne doit pas se trouver dans un rectange autour du visage
                 		   if((hand.x > found.x && hand.x < (found.x + found.width))||hand.y < found.y){
                 			   falsePositive = true;
-                			   System.out.println("False positive Detected");
+                			   //System.out.println("False positive Detected");
+                			   String[][] t = {{"reason","Hand object too close to face"}};
+                			   Event e = new Event("FALSE_POSITIVE",t);
+                			   e.print();
                 			   Imgproc.circle(im, new Point(hand.x,hand.y), 50, new Scalar(0,0,200),-1);
                 			   
                 		   }else{
@@ -118,6 +122,12 @@ class SimpleSample {
                 			   myHand.setFirstDetection(true);
                 		   }
                 	   }
+                	   //Autre faux positif (petits objet a Notifier ?)
+                		//  String[][] t = {{"reason","Hand object below HAND_MIN_HEIGHT and/or HAND_MIN_WIDTH"}};
+                		 // Event e = new Event("FALSE_POSITIVE",t);
+                		  //e.print();
+                		   
+                	   
                 	   if(!falsePositive){
                 		   Moments m =  Imgproc.moments(selectedHand);
                  		  cX = (int) (m.m10/m.m00);
@@ -132,7 +142,7 @@ class SimpleSample {
                 			   Imgproc.circle(im, new Point(mvBuffer.get(k)[0],mvBuffer.get(k)[1]), 7, new Scalar(0,200,0),-1);
                 	   		}
                 		   if(mvBuffer.getOrigin()[0]  != 0 && mvBuffer.getOrigin()[1] !=0){
-                			   Imgproc.circle(im, new Point(mvBuffer.getOrigin()[0],mvBuffer.getOrigin()[1]), 20, new Scalar(0,0,200),1);
+                			   Imgproc.circle(im, new Point(mvBuffer.getOrigin()[0],mvBuffer.getOrigin()[1]), Integer.parseInt(Config.getConfig("ORIGIN_RADIUS")), new Scalar(0,0,200),1);
                 		   }
                 		   
                 	   }

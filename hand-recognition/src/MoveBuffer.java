@@ -69,7 +69,7 @@ public class MoveBuffer extends ArrayList<int[]>{
 			for(int[] point:this){
 				//Regarder si la main est fixe si oui on met à jour l'origin sinon on break
 				//System.out.printf("%d %d - %d %d\n",point[0],prev_x,point[1],prev_y);
-				if(Math.abs(point[0]-prev_x)<5 && Math.abs(point[1]-prev_y)<5){
+				if(Math.abs(point[0]-prev_x)< Integer.parseInt(Config.getConfig("HAND_STATIC_LIMIT")) && Math.abs(point[1]-prev_y)< Integer.parseInt(Config.getConfig("HAND_STATIC_LIMIT"))){
 			
 				
 					sum_x +=point[0];
@@ -86,10 +86,17 @@ public class MoveBuffer extends ArrayList<int[]>{
 			}
 		
 		if(updating){
-			origin[0] = sum_x/this.size();
-			origin[1] = sum_y/this.size();
-			//System.out.printf("Updating Origin %d %d", origin[0],origin[1]);
-			return this.origin;
+			if(Math.abs(origin[0]-(sum_x/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT")) || Math.abs(origin[1]-(sum_y/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT"))){
+				//System.out.printf("Updating Origin Old %d %d New : %d %d", origin[0],origin[1],sum_x/this.size(),sum_y/this.size());
+				origin[0] = sum_x/this.size();
+				origin[1] = sum_y/this.size();
+			
+				return this.origin;
+			}else{
+				return null;
+			}
+			
+			
 		}
 		}
 		return null;

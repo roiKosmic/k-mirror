@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,17 +32,27 @@ public class HandTracker {
 	}
 	
 	public void setFirstDetection(boolean value){
+		Event event;
+		
+		
 		if(value && !taskSchedule && !trackingInProgress) {
 			this.trackerTask = new TrackingTask(this);
-			System.out.println("Hand first Detected -> Starting tracker Timer");
-			this.trackerTimer.schedule(trackerTask , 2000,200);
+			String[][] t = {{"reason","Hand first detection"}};
+			event = new Event("HAND_DETECTED",t);
+			event.print();
+			this.trackerTimer.schedule(trackerTask , Integer.parseInt(Config.getConfig("HAND_DETECTION_TIMER")),Integer.parseInt(Config.getConfig("HAND_TRACKING_INTERVAL")));
 			this.taskSchedule = true;
 			this.firstDetection = true;
+			
 		}else if(value && taskSchedule && trackingInProgress){
 			this.firstDetection = false;
 			this.endTrackerTask.cancel();
 			this.stopTrackingRequest = false;
-			System.out.println("Hand back in time");
+			String[][] t = {{"reason","Hand back before tracker timer has expired"}};
+			event = new Event("HAND_DETECTED",t);
+			event.print();
+			//reason back before tracking timer expired
+			
 		}
 		else{
 			this.firstDetection = false;
@@ -64,12 +76,15 @@ public class HandTracker {
 		if(!handPresent && this.taskSchedule && this.trackingInProgress){
 			if(!stopTrackingRequest){
 				this.endTrackerTask = new EndTrackingTask();
-				this.trackerTimer.schedule(this.endTrackerTask,1500);
+				this.trackerTimer.schedule(this.endTrackerTask,Integer.parseInt(Config.getConfig("HAND_REMOVE_TIMER")));
 				this.stopTrackingRequest = true;
 			}
 			
 		}else if (!handPresent && this.taskSchedule && !this.trackingInProgress){
-			System.out.println("Cancelling task before tracking");
+			String[][] t = {{"reason","Hand left before tracker timer has started"}};
+			Event event = new Event("HAND_NOT_DETECTED",t);
+			
+			event.print();
 			this.trackerTask.cancel();
 			this.taskSchedule = false;
 		}
@@ -83,7 +98,11 @@ public class HandTracker {
 		
 		}
 		public void run(){
-			System.out.println("Tracking Stopped ! No hand detected ");
+			String [][] t = {{"reason","Hand left and tracker timer expired"}};
+			Event event = new Event("HAND_NOT_DETECTED",t);
+			event.print();
+			//reason : tracker timer expired
+			
 			trackerTask.cancel();
 			taskSchedule=false;
 			trackingInProgress = false;
@@ -103,18 +122,24 @@ public class HandTracker {
 			
 		}
 		public void run(){
+			Event event;
 			if(!originSet){
 				//System.out.printf("Setting Origin of Hand Region - waiting for buffer %d/%d ",ref.mBuffer.size(),ref.mBuffer.getMaxSize());
 				if(mBuffer.size()>=mBuffer.getMaxSize()){
 					mBuffer.setOrigin();
 					originSet = true;
-					//System.out.println("Origin Set\n");
+					Object[][] t = {{"xorigin",new Integer(mBuffer.getOrigin()[0])},{"yorigin",new Integer(mBuffer.getOrigin()[1])}};
+					event = new Event("HAND_ORIGIN_SET",t);
+					event.print();
 				}
 				
 			}else{
 				trackingInProgress = true;
-				mBuffer.updateOrigin();
-				//System.out.println("Tracking in Progress - Passing buffer to Analyser");
+				if(mBuffer.updateOrigin()!=null){
+					Object[][] t = {{"xorigin",new Integer(mBuffer.getOrigin()[0])},{"yorigin",new Integer(mBuffer.getOrigin()[1])}};
+					event = new Event("HAND_ORIGIN_UPDATED",t);
+					event.print();;
+				}
 				moveAnalyser.checkMove(mBuffer);
 			}
 		}

@@ -19,8 +19,8 @@ public class MoveFactory {
 	private boolean outOfOrigin(int[] point, int[] origin){
 		int x = point[0]-origin[0];
 		int y = point[1]-origin[1];
-		
-		if((Math.pow(x,2)+Math.pow(y, 2))> (20*20)) return true;
+		int radius = Integer.parseInt(Config.getConfig("ORIGIN_RADIUS"));
+		if((Math.pow(x,2)+Math.pow(y, 2))> (radius*radius)) return true;
 		return false;
 	}
 
@@ -91,18 +91,50 @@ public class MoveFactory {
 		private void calculateDirection(MovementBuffer mv){
 			int [] mean;
 			double angle;
+			Event e = null;
+			
+			
 			mean = mv.getWeightMean();
-			
 			angle = (double)(mean[1]-mv.getOrigin()[1])/(mean[0]-mv.getOrigin()[0]);
-			
 			angle = Math.atan(angle);
-			System.out.printf("Angle %f\n",angle);
+		
+			double angleLimit = Double.parseDouble(Config.getConfig("MOVE_ANGLE_LIMIT"));
+			
 			if((mean[0]-mv.getOrigin()[0])<0){
-				System.out.println("<============== Move Right ===============>");
+				if(angle>-angleLimit && angle<angleLimit){
+					System.out.println("<============== Move Right ===============>");	
+					Object[][] t= {{"xMove","RIGHT"},{"yMove",null},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+					
+				}else if (angle<-angleLimit){
+					System.out.println("<============== Move DOWN Right ===============>");
+					Object[][] t= {{"xMove","RIGHT"},{"yMove","DOWN"},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+					
+				}else{
+					System.out.println("<============== Move UP Right ===============>");
+					
+					Object[][] t= {{"xMove","RIGHT"},{"yMove","UP"},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+				}
 			}else{
-				System.out.println("<============== Move Left ===============>");
+				if(angle>-angleLimit && angle<angleLimit){
+					System.out.println("<============== Move Left ===============>");
+					Object[][] t= {{"xMove","LEFT"},{"yMove",null},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+					
+				}else if (angle<-angleLimit){
+					System.out.println("<============== Move UP Left ===============>");
+					Object[][] t= {{"xMove","LEFT"},{"yMove","UP"},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+				}else{
+					System.out.println("<============== Move DOWN Left ===============>");
+					Object[][] t= {{"xMove","LEFT"},{"yMove","DOWN"},{"angle",new Float(angle)}};
+					e = new Event("MOVE",t);
+				}
 			}
 			
+			e.print();
 			
 		}
 		
@@ -115,20 +147,22 @@ public class MoveFactory {
 					Iterator<MovementBuffer> mvi = move.iterator();
 					while(mvi.hasNext()){
 						MovementBuffer mv = mvi.next();
-						if(mv.size()>=5 && !mv.isProcessed()){
+						if(mv.size()>=(mv.getMaxSize()/2) && !mv.isProcessed()){
 							calculateDirection(mv);
 							mv.setProcessed(true);
 						}else if (!mv.isProcessed()){
-							System.out.println("Move too short - deleting");
+							String[][] t = {{"reason","Too short to decide"}};
+							Event e = new Event("MOVE_CANCEL",t);
+							e.print();
 							mvi.remove();
-						}else if (mv.isProcessed() && System.currentTimeMillis()> (mv.getTimeStamp()+500)){
+						}else if (mv.isProcessed() && System.currentTimeMillis()> (mv.getTimeStamp()+Integer.parseInt(Config.getConfig("MOVE_AGE_DELETE")))){
 							mvi.remove();
 						}
 					}
 					}
 				}
 				try {
-					sleep(200);
+					sleep(Integer.parseInt(Config.getConfig("MOVE_DETECTION_INTERVAL")));
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
