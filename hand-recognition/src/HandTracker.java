@@ -39,7 +39,8 @@ public class HandTracker {
 			this.trackerTask = new TrackingTask(this);
 			String[][] t = {{"reason","Hand first detection"}};
 			event = new Event("HAND_DETECTED",t);
-			event.print();
+			//event.print();
+			event.sendEvent();
 			this.trackerTimer.schedule(trackerTask , Integer.parseInt(Config.getConfig("HAND_DETECTION_TIMER")),Integer.parseInt(Config.getConfig("HAND_TRACKING_INTERVAL")));
 			this.taskSchedule = true;
 			this.firstDetection = true;
@@ -50,7 +51,8 @@ public class HandTracker {
 			this.stopTrackingRequest = false;
 			String[][] t = {{"reason","Hand back before tracker timer has expired"}};
 			event = new Event("HAND_DETECTED",t);
-			event.print();
+			//event.print();
+			event.sendEvent();
 			//reason back before tracking timer expired
 			
 		}
@@ -84,7 +86,8 @@ public class HandTracker {
 			String[][] t = {{"reason","Hand left before tracker timer has started"}};
 			Event event = new Event("HAND_NOT_DETECTED",t);
 			
-			event.print();
+			//event.print();
+			event.sendEvent();
 			this.trackerTask.cancel();
 			this.taskSchedule = false;
 		}
@@ -100,7 +103,8 @@ public class HandTracker {
 		public void run(){
 			String [][] t = {{"reason","Hand left and tracker timer expired"}};
 			Event event = new Event("HAND_NOT_DETECTED",t);
-			event.print();
+			event.sendEvent();
+			//event.print();
 			//reason : tracker timer expired
 			
 			trackerTask.cancel();
@@ -130,7 +134,8 @@ public class HandTracker {
 					originSet = true;
 					Object[][] t = {{"xorigin",new Integer(mBuffer.getOrigin()[0])},{"yorigin",new Integer(mBuffer.getOrigin()[1])}};
 					event = new Event("HAND_ORIGIN_SET",t);
-					event.print();
+					//event.print();
+					event.sendEvent();
 				}
 				
 			}else{
@@ -138,7 +143,8 @@ public class HandTracker {
 				if(mBuffer.updateOrigin()!=null){
 					Object[][] t = {{"xorigin",new Integer(mBuffer.getOrigin()[0])},{"yorigin",new Integer(mBuffer.getOrigin()[1])}};
 					event = new Event("HAND_ORIGIN_UPDATED",t);
-					event.print();;
+					//event.print();;
+					event.sendEvent();
 				}
 				moveAnalyser.checkMove(mBuffer);
 			}

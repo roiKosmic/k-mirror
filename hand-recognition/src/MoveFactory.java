@@ -134,8 +134,8 @@ public class MoveFactory {
 				}
 			}
 			
-			e.print();
-			
+			//e.print();
+			e.sendEvent();
 		}
 		
 		public void run(){
@@ -153,7 +153,8 @@ public class MoveFactory {
 						}else if (!mv.isProcessed()){
 							String[][] t = {{"reason","Too short to decide"}};
 							Event e = new Event("MOVE_CANCEL",t);
-							e.print();
+							//e.print();
+							e.sendEvent();
 							mvi.remove();
 						}else if (mv.isProcessed() && System.currentTimeMillis()> (mv.getTimeStamp()+Integer.parseInt(Config.getConfig("MOVE_AGE_DELETE")))){
 							mvi.remove();

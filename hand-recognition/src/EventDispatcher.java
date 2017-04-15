@@ -22,13 +22,17 @@ public class EventDispatcher {
 	}
 
 	public void addEvent(Event e){
-		synchronized(eventList){
-			eventList.add(e);
-			Collections.sort(eventList,new Comparator<Event>(){
-				public int compare(Event e1,Event e2){
-					return Long.compare(e1.getTime(), e2.getTime());
-				}
-			});
+		if(Integer.parseInt(Config.getConfig(e.getName()))== 1){
+			synchronized(eventList){
+				eventList.add(e);
+				Collections.sort(eventList,new Comparator<Event>(){
+					public int compare(Event e1,Event e2){
+						return Long.compare(e1.getTime(), e2.getTime());
+					}
+				});
+			}
+		}else{
+			System.out.println("Event filtered");
 		}
 	}
 	

@@ -114,7 +114,8 @@ class SimpleSample {
                 			   //System.out.println("False positive Detected");
                 			   String[][] t = {{"reason","Hand object too close to face"}};
                 			   Event e = new Event("FALSE_POSITIVE",t);
-                			   e.print();
+                			   //e.print();
+                			   e.sendEvent();
                 			   Imgproc.circle(im, new Point(hand.x,hand.y), 50, new Scalar(0,0,200),-1);
                 			   
                 		   }else{

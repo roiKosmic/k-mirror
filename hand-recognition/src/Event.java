@@ -6,13 +6,23 @@ import org.json.simple.*;
 public class Event {
 	
 	JSONObject jsonEvent;
+	long time;
+	String name;
 	
 	public Event(String eventName) {
+		name = eventName;
+		time = System.currentTimeMillis();
 		jsonEvent = new JSONObject();
 		jsonEvent.put("event", eventName);
-		jsonEvent.put("time",System.currentTimeMillis());
+		jsonEvent.put("time",time);
 	}
 
+	public String getName(){
+		return this.name;
+	}
+	public long getTime(){
+		return this.time;
+	}
 	public Event(String eventName,Object[][] data){
 		this(eventName);
 	
@@ -38,6 +48,10 @@ public class Event {
 	
 	public String toString(){
 		return jsonEvent.toJSONString();
+	}
+	
+	public void sendEvent(){
+		EventDispatcher.getInstance().addEvent(this);
 	}
 }
 
