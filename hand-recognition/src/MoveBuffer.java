@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class MoveBuffer extends ArrayList<int[]>{
 	/**
@@ -8,8 +9,10 @@ public class MoveBuffer extends ArrayList<int[]>{
 	private int maxSize;
 	private int[] origin= {0,0};
 	
+	
 	public MoveBuffer(int max){
 		this.maxSize = max;
+		
 		
 	}
 	public int getMaxSize(){
@@ -58,7 +61,29 @@ public class MoveBuffer extends ArrayList<int[]>{
 		}
 		return this.origin;
 	}
-	
+	public void checkHeightVariation(){
+	//changer en Iterator et passer le point à -1
+		int prev_height=this.get(0)[2];
+		//System.out.println("=====> Checking click event");
+		synchronized(this){
+			Iterator<int[]> mvi = this.iterator();
+			while(mvi.hasNext()){
+				int[] point = mvi.next();
+			//	System.out.printf("%d %d \n",point[2],prev_height);
+				if(point[2] != -1 && prev_height -point[2] >Integer.parseInt(Config.getConfig("HAND_CLICK_THRESHOLD"))){
+					Object[][] t= {{"reason","height change"}};
+					Event e = new Event("HAND_CLICK",t);
+					e.sendEvent();
+					point[2] = -1;
+					break;
+				}
+				prev_height = point[2];
+				//point[2] = -1;
+				
+				
+			}
+		}
+	}
 	public int[] updateOrigin(){
 		int prev_x = this.get(0)[0];
 		int prev_y = this.get(0)[1];
@@ -74,6 +99,8 @@ public class MoveBuffer extends ArrayList<int[]>{
 				
 					sum_x +=point[0];
 					sum_y +=point[1];
+					
+					
 				
 				}else{
 					updating = false;
@@ -86,11 +113,13 @@ public class MoveBuffer extends ArrayList<int[]>{
 			}
 		
 		if(updating){
+			
 			if(Math.abs(origin[0]-(sum_x/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT")) || Math.abs(origin[1]-(sum_y/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT"))){
 				//System.out.printf("Updating Origin Old %d %d New : %d %d", origin[0],origin[1],sum_x/this.size(),sum_y/this.size());
 				origin[0] = sum_x/this.size();
 				origin[1] = sum_y/this.size();
-			
+				//Check si on a une difference de taille de main pour detecter un click
+				
 				return this.origin;
 			}else{
 				return null;
@@ -113,9 +142,9 @@ public class MoveBuffer extends ArrayList<int[]>{
 			this.origin[1]=0;
 		}
 	}
-	public void addPoint(int x,int y){
+	public void addPoint(int x,int y,int height){
 		synchronized(this){
-			int[] pt = {x,y};
+			int[] pt = {x,y,height};
 			add(pt);
 			if(size()> this.maxSize){
 				removeRange(0,this.size() - maxSize -1 );

@@ -20,11 +20,57 @@ public class EventDispatcher {
 		thread.start();
 		
 	}
-
+	public Event getLastEventByType(String type){
+		Event last = null;
+		synchronized(eventList){
+			Iterator<Event> i = eventList.iterator();
+			while(i.hasNext()){
+				Event e = i.next();
+				if(e.getName().equals(type)){
+					e.print();
+					last =e;
+				}
+			}
+			
+		}
+		
+		return last;
+	}
+	
+	public void removeOldEvent(){
+		long duration = Long.parseLong(Config.getConfig("EVENT_AGE_DELETE"));
+		synchronized(eventList){
+			Iterator<Event> i = eventList.iterator();
+			while(i.hasNext()){
+				Event e = i.next();
+				if(e.isProcessed()){
+					
+					if(Math.abs(e.getTime()-System.currentTimeMillis())> duration){
+						
+						i.remove();
+					}
+				}
+			}
+		}
+		
+	}
 	public void addEvent(Event e){
 		if(Integer.parseInt(Config.getConfig(e.getName()))== 1){
 			synchronized(eventList){
-				eventList.add(e);
+				if(e.getName().equals("HAND_CLICK")){
+					Event previous = this.getLastEventByType("HAND_CLICK");
+					if(previous !=null){
+						if(Math.abs(previous.getTime()-e.getTime())>Integer.parseInt(Config.getConfig("CLICK_EVENT_LOCK_PERIOD"))){
+							eventList.add(e);
+						}else{
+							System.out.println("Click event filtered - Lock period");
+						}
+					}else{
+						eventList.add(e);
+					}
+				 }else{
+					 eventList.add(e);
+				 }
 				Collections.sort(eventList,new Comparator<Event>(){
 					public int compare(Event e1,Event e2){
 						return Long.compare(e1.getTime(), e2.getTime());
@@ -76,18 +122,22 @@ public class EventDispatcher {
 				osw.close();
 				System.out.println(hurl.getResponseCode());
 			}catch(Exception ex){
-				ex.printStackTrace();
+				System.out.println("Network connection error");
 			}
 			
 		}
 		public void run(){
 			while(true){
+				removeOldEvent();
 				synchronized(eventList){
 					Iterator<Event> i = eventList.iterator();
 					while(i.hasNext()){
 						Event e = i.next();
-						sendEventHttp(e);
-						i.remove();
+						if(!e.isProcessed()){
+							sendEventHttp(e);
+						}
+						e.setProcessed();
+						
 					}
 				}
 			}

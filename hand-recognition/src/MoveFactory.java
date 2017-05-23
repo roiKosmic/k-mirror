@@ -41,14 +41,14 @@ public class MoveFactory {
 			}
 			if(!outOfOrigin(point,handPosition.getOrigin()) && moveOpen ){
 				//System.out.println("Move ended");
-				this.currentMove.addPoint(point[0], point[1]);
+				this.currentMove.addPoint(point[0], point[1],point[2]);
 				this.currentMove.setOrigin(handPosition.getOrigin()[0],handPosition.getOrigin()[1]);
 				moveClose = true;
 				end = compteur;
 				break;
 			}
 			if(moveOpen){
-				this.currentMove.addPoint(point[0], point[1]);
+				this.currentMove.addPoint(point[0], point[1],point[2]);
 			}
 			compteur++;
 		}

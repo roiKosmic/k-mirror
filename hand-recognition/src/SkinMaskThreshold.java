@@ -37,18 +37,19 @@ public class SkinMaskThreshold {
 		}
 		int hmoy = calculateAverage(harray);
 		int hecart = calculEcartType(hmoy,harray);
-		this.hmin=hmoy-2*hecart;
-		this.hmax=hmoy+2*hecart;
+		float thresHold = Float.parseFloat(Config.getConfig("SKIN_DETECTION_THRESHOLD"));
+		this.hmin=hmoy-thresHold*hecart;
+		this.hmax=hmoy+thresHold*hecart;
 		
 		int smoy = calculateAverage(sarray);
 		int secart = calculEcartType(smoy,sarray);
-		this.smin=smoy-2*secart;
-		this.smax=smoy+2*secart;
+		this.smin=smoy-thresHold*secart;
+		this.smax=smoy+thresHold*secart;
 		
 		int vmoy = calculateAverage(varray);
 		int vecart = calculEcartType(vmoy,varray);
-		this.vmin=vmoy-2*vecart;
-		this.vmax=vmoy+2*vecart;
+		this.vmin=vmoy-thresHold*vecart;
+		this.vmax=vmoy+thresHold*vecart;
 		
 	/*	System.out.printf("Hue Threshold Min %f - Max %f\n",Math.max(0, this.hmin),Math.min(179,this.hmax));
 		System.out.printf("Saturation Threshold Min %f - Max %f\n",Math.max(0,this.smin),Math.min(255, this.smax));

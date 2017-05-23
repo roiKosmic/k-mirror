@@ -19,7 +19,7 @@ import lowgui.*;
 //
 // SimpleSample [persons_dir] [path/to/face_cascade]
 //
-class HandRecognizer {
+public class HandRecognizer {
 
     static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 
@@ -36,7 +36,7 @@ class HandRecognizer {
 
         NamedWindow    frame = new NamedWindow("Face");
        // NamedWindow fgfr = new NamedWindow("fg");
-       // NamedWindow fgfr2 = new NamedWindow("fg");
+        NamedWindow fgfr2 = new NamedWindow("fg");
         VideoCapture cap = new VideoCapture(0);
        // cap.set(Videoio.CAP_PROP_FPS,5);
        
@@ -99,19 +99,23 @@ class HandRecognizer {
                     //Init du masque de découverte de la peau par rapport au visage
                     skin = new SkinMaskThreshold(im,found);
                     //Extraction uniquement des parties avec peau (visage et main généralement)
+                    
                     Core.bitwise_and(im,im,skinfr,skin.getSkinSkeleton());
+                   
                     //Remplissage de la tête par un carré noir
                     skin.removeHead(skinfr, found);
                     //Extraction du fond pour limiter les faux positifs du masque peau (si le mur est couleur peau par ex)
-                   Core.bitwise_and(skinfr, skinfr,skinForground, fg);
+                    Core.bitwise_and(skinfr, skinfr,skinForground, fg);
                    
                   //Passage en gris  
                   Imgproc.cvtColor(skinForground, skinForground,Imgproc.COLOR_HSV2RGB);
                   Imgproc.cvtColor(skinForground, skinForground, Imgproc.COLOR_RGB2GRAY);
                  //Découverte des contours.
                   Imgproc.findContours(skinForground, contours,new Mat(),Imgproc.RETR_EXTERNAL ,Imgproc.CHAIN_APPROX_SIMPLE);
+                  
                   //Selection des contours
                   for(int j=0;j<contours.size();j++){
+                	  //Imgproc.drawContours(im, contours, j,new Scalar(200,0,0) );
                 	  if(j==0){ selectedHand = contours.get(j);}
                 	  //On prend que les grands contours
                 	  if(Imgproc.contourArea(contours.get(j))>Integer.parseInt(Config.getConfig("HAND_CONTOUR_AREA"))){
@@ -157,7 +161,7 @@ class HandRecognizer {
                 		   myHand.setHandPresent(true);
                 		   myHand.setFirstDetection(false);
                 		   
-                			   mvBuffer.addPoint(cX, cY);
+                			   mvBuffer.addPoint(cX, cY,hand.height);
                 		   
                 		   Imgproc.rectangle(im, hand.tl(), hand.br(),new Scalar(200,0,0));
                 		   for(int k=0;k<mvBuffer.size();k++){
@@ -181,11 +185,11 @@ class HandRecognizer {
                     	 break;
                      }
                      
-                    // fgfr.imshow(skinForground);
+                    fgfr2.imshow(skinForground);
                 }else{
                 	 nothingDetected = true;
                 }
-                //fgfr2.imshow(fg);
+               // fgfr2.imshow(skinForground);
                 frame.imshow(im);
                
                 im.release();

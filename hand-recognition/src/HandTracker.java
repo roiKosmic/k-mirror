@@ -145,8 +145,10 @@ public class HandTracker {
 					event = new Event("HAND_ORIGIN_UPDATED",t);
 					//event.print();;
 					event.sendEvent();
+					
 				}
 				moveAnalyser.checkMove(mBuffer);
+				mBuffer.checkHeightVariation();
 			}
 		}
 		

@@ -8,6 +8,7 @@ public class Event {
 	JSONObject jsonEvent;
 	long time;
 	String name;
+	boolean processed;
 	
 	public Event(String eventName) {
 		name = eventName;
@@ -15,8 +16,15 @@ public class Event {
 		jsonEvent = new JSONObject();
 		jsonEvent.put("event", eventName);
 		jsonEvent.put("time",time);
+		processed = false;
+		
 	}
-
+	public boolean isProcessed(){
+		return this.processed;
+	}
+	public void setProcessed(){
+		this.processed = true;
+	}
 	public String getName(){
 		return this.name;
 	}
