@@ -10,6 +10,7 @@ public class MoveBuffer extends ArrayList<int[]>{
 	private int[] origin= {0,0};
 	
 	
+	
 	public MoveBuffer(int max){
 		this.maxSize = max;
 		
@@ -61,8 +62,17 @@ public class MoveBuffer extends ArrayList<int[]>{
 		}
 		return this.origin;
 	}
+	
+	private boolean checkXmove(int x_coordinate){
+		if(Math.abs(x_coordinate)- this.getOrigin()[0] > Integer.parseInt(Config.getConfig("HAND_CLICK_X_MOVE_LIMIT"))){
+			//System.out.println("HAND Click cancel : false positive Hand moving");
+			return true;
+		}
+		
+		return false;
+	}
 	public void checkHeightVariation(){
-	//changer en Iterator et passer le point à -1
+
 		int prev_height=this.get(0)[2];
 		//System.out.println("=====> Checking click event");
 		synchronized(this){
@@ -71,18 +81,21 @@ public class MoveBuffer extends ArrayList<int[]>{
 				int[] point = mvi.next();
 			//	System.out.printf("%d %d \n",point[2],prev_height);
 				if(point[2] != -1 && prev_height -point[2] >Integer.parseInt(Config.getConfig("HAND_CLICK_THRESHOLD"))){
-					Object[][] t= {{"reason","height change"}};
-					Event e = new Event("HAND_CLICK",t);
-					e.sendEvent();
-					point[2] = -1;
+					if(!checkXmove(point[0])){
+						Object[][] t= {{"reason","height change"}};
+						Event e = new Event("HAND_CLICK",t);
+						e.sendEvent();
+						point[2] = -1;
+					}
 					break;
 				}
 				prev_height = point[2];
-				//point[2] = -1;
+				
 				
 				
 			}
 		}
+	 
 	}
 	public int[] updateOrigin(){
 		int prev_x = this.get(0)[0];
@@ -90,6 +103,7 @@ public class MoveBuffer extends ArrayList<int[]>{
 		int sum_x = 0;
 		int sum_y = 0;
 		boolean updating = true;
+		
 		synchronized(this){
 			for(int[] point:this){
 				//Regarder si la main est fixe si oui on met à jour l'origin sinon on break
@@ -111,14 +125,15 @@ public class MoveBuffer extends ArrayList<int[]>{
 				prev_x = point[0];
 				prev_y = point[1];
 			}
-		
+	
 		if(updating){
 			
 			if(Math.abs(origin[0]-(sum_x/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT")) || Math.abs(origin[1]-(sum_y/this.size()))> Integer.parseInt(Config.getConfig("ORIGIN_UPDATE_LIMIT"))){
 				//System.out.printf("Updating Origin Old %d %d New : %d %d", origin[0],origin[1],sum_x/this.size(),sum_y/this.size());
 				origin[0] = sum_x/this.size();
 				origin[1] = sum_y/this.size();
-				//Check si on a une difference de taille de main pour detecter un click
+				//La main est fixe
+				
 				
 				return this.origin;
 			}else{
