@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: K-mirrorServer
+Bundle-SymbolicName: K-mirrorServer
+Bundle-Version: 1.0.0.qualifier

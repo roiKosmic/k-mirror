@@ -1,0 +1,32 @@
+{
+  "ecmaVersion": 6,
+  "plugins": {
+    "outline": {
+      
+    },
+    "lint": {
+      
+    },
+    "node": {
+      
+    },
+    "yui3": {
+      
+    },
+    "angular": {
+      
+    },
+    "node-express": {
+      
+    },
+    "node-extension": {
+      
+    }
+  },
+  "libs": [
+    "ecma5",
+    "ecma6",
+    "browser",
+    "jquery"
+  ]
+}

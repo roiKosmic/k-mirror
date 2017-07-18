@@ -1,0 +1,10 @@
+extends layout
+block content
+	p welcome
+	div(ng-app='socketAngular', ng-controller='socketController')
+		{{status}}
+	script(src='js/lib/angular/angular.js')
+	script(src='/socket.io/socket.io.js')
+	script(src='js/app.js')
+	script(src='js/controller.js')
+	
