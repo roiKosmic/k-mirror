@@ -30,15 +30,15 @@ public class HandRecognizer {
         
         bg.setDetectShadows(false);
         
-        String cascadeFile = "/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml";
+        String cascadeFile = Config.getConfig("HAARCASCADE_FILE");
         CascadeClassifier cascade = new CascadeClassifier(cascadeFile);
-        System.out.println("cascade loaded: "+(!cascade.empty())+" !");
+        System.out.println("cascade loaded: "+(!cascade.empty())+ cascadeFile +" !");
 
         NamedWindow    frame = new NamedWindow("Face");
        // NamedWindow fgfr = new NamedWindow("fg");
-        NamedWindow fgfr2 = new NamedWindow("fg");
+        //NamedWindow fgfr2 = new NamedWindow("fg");
         VideoCapture cap = new VideoCapture(0);
-       // cap.set(Videoio.CAP_PROP_FPS,5);
+        //cap.set(Videoio.CAP_PROP_FPS,5);
        
         if (! cap.isOpened()) {
             System.out.println("Sorry, we could not open you capture !");
@@ -185,7 +185,7 @@ public class HandRecognizer {
                     	 break;
                      }
                      
-                    fgfr2.imshow(skinForground);
+                    //fgfr2.imshow(skinForground);
                 }else{
                 	 nothingDetected = true;
                 }
